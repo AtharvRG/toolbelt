@@ -19,12 +19,13 @@
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "toolbelt" }],
   "observability": {
     "enabled": true,
-    "traces": { "enabled": true }
+    // Trace 5% of requests. From Oct 1, 2026 every span counts against the 20M
+    // observability events Workers Paid includes each month; logs stay at 100%.
+    "traces": { "enabled": true, "head_sampling_rate": 0.05 }
   },
-  // tools.codercops.com is a route, not a custom domain, while its proxied CNAME still
-  // points at the frozen Vercel deployment: deleting the route sends traffic
-  // back there. www.tools.codercops.com is a custom domain only so it gets a certificate;
-  // a zone redirect rule 301s it to tools.codercops.com.
+  // tools.codercops.com is served through a route on a proxied placeholder DNS record
+  // (AAAA 100::). www.tools.codercops.com is a custom domain only so it gets a
+  // certificate; a zone redirect rule 301s it to tools.codercops.com.
   "routes": [
     { "pattern": "tools.codercops.com/*", "zone_name": "codercops.com" },
     { "pattern": "www.tools.codercops.com", "custom_domain": true }
@@ -32,7 +33,7 @@
   "workers_dev": false,
   "preview_urls": false,
   "env": {
-    // Staging, built from `develop` by its own Workers Builds connection
+    // The develop environment, built from `develop` by its own Workers Builds connection
     // (deploy: `npx opennextjs-cloudflare deploy --env dev`). routes,
     // workers_dev and preview_urls are set explicitly because an environment
     // inherits them; bindings are not inherited, so they repeat here.
